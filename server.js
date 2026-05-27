@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 });
 
 // 🎰 [উইনগো কালার ট্রেড ওরিজিনাল ডোমেইন সিঙ্ক]
-const MAIN_SITE_URL = "https://onrender.com"; 
+const MAIN_SITE_URL = "https://betlover247.onrender.com"; 
 
 // 🔴🟢🔵 ৩টি নিয়ন গর্ত বা হোলের মেমোরি পুল
 const marbleHolesPool = ["RED", "GREEN", "BLUE"];
