@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MARBLE POP - LOCAL MARBLE BLAST</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* 🎨 স্পীড অপ্টিমাইজড কোর সিএসএস ফ্রেম ইনজেকশন ভাই ভাই */
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #060a14; font-family: 'Segoe UI', Roboto, sans-serif; color: #fff; -webkit-tap-highlight-color: transparent; user-select: none; }
+        .header { display: none !important; } /* ডাবল ব্যালেন্স বক্স জ্যাম ব্লকার */
+        
+        body { 
+            background: radial-gradient(circle at center, #0f1526 0%, #05080f 100%); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            height: 100vh; 
+        }
+
+        /* 🏟️ মার্বেল ড্রপিং মেইন ক্যানভাস বোর্ড এরিয়া */
+        .game-board-container {
+            position: relative;
+            z-index: 5;
+            width: calc(100% - 24px);
+            max-width: 420px;
+            height: 250px;
+            margin: 15px auto 5px auto;
+            background: rgba(8, 12, 22, 0.85);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 16px;
+            box-shadow: inset 0 0 25px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
+
+        /* 🔴 🟢 🔵 ৩টি ওরিজিনাল নিয়ন পপ রিসিভার হোল প্যানেল */
+        .receiver-holes-row {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .hole-node {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #090d16;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.9);
+            position: relative;
+        }
+
+        .hole-red { border: 2px solid #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3), inset 0 4px 10px rgba(0,0,0,0.9); }
+        .hole-green { border: 2px solid #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.3), inset 0 4px 10px rgba(0,0,0,0.9); }
+        .hole-blue { border: 2px solid #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3), inset 0 4px 10px rgba(0,0,0,0.9); }
+
+        /* 🔮 লাইভ ড্রপিং ৩D মার্বেল কন্টেইনার নোড */
+        .live-marble-ball {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #ffffff 0%, #ffaa00 40%, #996600 100%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6), 0 0 6px rgba(255,170,0,0.4);
+            z-index: 100;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* 💸 বাজি ধরার প্রধান ৩টি নিয়ন মডিউল বোতাম */
+        .betting-board { position: relative; z-index: 5; display: flex; justify-content: space-between; padding: 5px 12px; gap: 10px; max-width: 420px; margin: 0 auto; width: calc(100% - 24px); }
+        .bet-board-btn { flex: 1; background: linear-gradient(180deg, #141926 0%, #0c0f17 100%); border: 2px solid #20283b; border-radius: 14px; padding: 12px 2px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .red-btn .board-label { color: #f87171; }
+        .green-btn .board-label { color: #4ade80; }
+        .blue-btn .board-label { color: #60a5fa; }
+        
+        .board-label { font-size: 11px; font-weight: 800; letter-spacing: 0.3px; }
+        .board-odds { font-size: 11px; font-weight: 700; color: #ffaa00; }
+        .bet-board-btn.active-side-bet { border-color: #ffaa00 !important; background: linear-gradient(180deg, #261f12 0%, #141009 100%) !important; box-shadow: 0 0 12px rgba(255,170,0,0.4) !important; }
+        .bet-board-btn.active-side-bet .board-label { color: #ffaa00 !important; }
+
+        /* 📢 লাইভ মেসেজ প্যানেল বার */
+        .win-status-container { position: relative; z-index: 5; text-align: center; padding: 10px; margin: 5px 12px; background: rgba(9, 13, 23, 0.6); border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); }
+        #win-text-msg { font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.3px; }
+
+        /* 🎛️ কন্ট্রোল ফুটার প্যানেল বার */
+        .footer-controls { position: relative; z-index: 10; background: #07090f; border-top: 1px solid #161b29; padding: 10px 15px 25px 15px; box-shadow: 0 -5px 20px rgba(0,0,0,0.6); }
+        .play-section { display: flex; justify-content: space-between; align-items: center; gap: 10px; max-width: 420px; margin: 0 auto; }
+        .bet-btn-nav { background: #111524; border: 1px solid #202b44; color: #ffaa00; font-size: 18px; font-weight: 800; width: 38px; height: 38px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .play-btn { flex: 1; background: linear-gradient(180deg, #ffbb00 0%, #d48800 100%); color: #000; font-size: 15px; font-weight: 900; border: none; padding: 11px 0; border-radius: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(212,136,0,0.3); }
+        .play-btn:disabled { background: #141721 !important; color: #4b5563 !important; box-shadow: none !important; cursor: not-allowed; }
+        .icon-btn { background: #111524; border: 1px solid #202b44; width: 38px; height: 38px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffaa00; font-weight: bold; }
+        .icon-btn.active { background: #ffaa00; color: #000; box-shadow: 0 0 10px rgba(255,170,0,0.4); }
+
+        .win-glow-bar { border-color: rgba(0, 255, 136, 0.4) !important; background: rgba(0, 255, 136, 0.05) !important; }
+        .win-glow-bar #win-text-msg { color: #00ff88 !important; }
+        .lose-glow-bar { border-color: rgba(255, 51, 102, 0.4) !important; background: rgba(255, 51, 102, 0.05) !important; }
+        .lose-glow-bar #win-text-msg { color: #ff3366 !important; }
+    </style>
+</head>
+<body>
+
+    <div class="header" style="display:none !important;">
+        <div class="balance-box">৳ <span id="user-balance">0.00</span></div>
+    </div>
+
+    <!-- 🏟️ মার্বেল বোর্ড ক্যানভাস (গিটহাবে কোনো ইমেজ ফাইল আপলোড ছাড়াই পিওর নোড জেনারেশন ওস্তাদ) -->
+    <div class="game-board-container" id="marble-canvas-frame">
+        <div class="live-marble-ball" id="active-marble-node"></div>
+        
+        <!-- ৩টি ওরিজিনাল কালার রিসিভার হোল প্যানেল -->
+        <div class="receiver-holes-row">
+            <div class="hole-node hole-red"></div>
+            <div class="hole-node hole-green"></div>
+            <div class="hole-node hole-blue"></div>
+        </div>
+    </div>
+
+    <!-- 💸 বাজি ধরার প্রধান ৩টি নিয়ন মডিউল (RED, GREEN, BLUE ওডস লক ভাই) -->
+    <div class="betting-board">
+        <button class="bet-board-btn red-btn" id="board-RED" onclick="selectBetSide('RED')">
+            <span class="board-label">RED 🔴</span>
+            <span class="board-odds">x2.50</span>
+        </button>
+
+        <button class="bet-board-btn green-btn" id="board-GREEN" onclick="selectBetSide('GREEN')">
+            <span class="board-label">GREEN 🟢</span>
+            <span class="board-odds">x2.50</span>
+        </button>
+
+        <button class="bet-board-btn blue-btn" id="board-BLUE" onclick="selectBetSide('BLUE')">
+            <span class="board-label">BLUE 🔵</span>
+            <span class="board-odds">x2.50</span>
+        </button>
+    </div>
+
+    <!-- 📢 উইন-লস লাইভ ক্যাসিনো মেসেজ প্যানেল বার -->
+    <div class="win-status-container" id="win-status-box">
+        <span id="win-text-msg">RED, GREEN বা BLUE চুজ করে POP বোতাম চাপুন ভাই!</span>
+    </div>
+
+    <!-- 🎛️ অ্যাকশন কন্ট্রোল ফুটার প্যানেল বার -->
+    <div class="footer-controls">
+        <div class="play-section">
+            <button class="bet-btn-nav" onclick="adjustBet('minus')">-</button>
+            <div style="text-align: center; width: 60px;">
+                <div style="font-size: 9px; color: #aaa; font-weight: bold;">BET</div>
+                <div style="font-size: 15px; font-weight: 900; color: #fff;" id="bet-display">৳50</div>
+            </div>
+            <button class="bet-btn-nav" onclick="adjustBet('plus')">+</button>
+
+            <button class="play-btn" id="spin-btn" onclick="handleMarblePopDeal()">POP</button>
+            
+            <div class="icon-group">
+                <button class="icon-btn" id="auto-btn" onclick="toggleAuto()">🤖</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlUserId = urlParams.get('userId') || urlParams.get('id') || urlParams.get('username') || "guest_user";
+        const urlWallet = urlParams.get('wallet') || "main";
+        const SERVER_URL = window.location.origin;
+
+        let balance = 0.00;
+        let currentBet = 50;
+        let selectedSide = null;
+        let isSpinning = false;
+        let isAuto = false;
+        let isMuted = false;
+        let autoInterval = null;
+
+                function generateStaticCanvasPegs() {
+            const canvasFrame = document.getElementById("marble-canvas-frame");
+            if (!canvasFrame) return;
+            
+            // ওরিজিনাল ৩টি কাতার অনুযায়ী পিনের পজিশন ম্যাপিং লক
+            const pegRows = [
+                { row: 1, count: 1, top: 40 },
+                { row: 2, count: 2, top: 90 },
+                { row: 3, count: 3, top: 140 }
+            ];
+
+            pegRows.forEach(pRow => {
+                for (let i = 0; i < pRow.count; i++) {
+                    const peg = document.createElement("div");
+                    peg.style.position = "absolute";
+                    peg.style.width = "6px";
+                    peg.style.height = "6px";
+                    peg.style.background = "#ffbb00";
+                    peg.style.borderRadius = "50%";
+                    peg.style.boxShadow = "0 0 6px #ffbb00";
+                    peg.style.top = pRow.top + "px";
+                    
+                    // সেন্টারিং এলাইনমেন্ট ক্যালকুলেশন লুপ ভাই ভাই
+                    let leftOffset = 50 + (i - (pRow.count - 1) / 2) * 20;
+                    peg.style.left = leftOffset + "%";
+                    peg.style.transform = "translateX(-50%)";
+                    canvasFrame.appendChild(peg);
+                }
+            });
+        }
+
+        function adjustBet(action) {
+            if (isSpinning) return;
+            if (action === 'minus' && currentBet > 50) currentBet -= 50;
+            if (action === 'plus' && currentBet < 20000) currentBet += 50;
+            document.getElementById("bet-display").innerText = `৳${currentBet}`;
+            playAudio('click');
+        }
+
+        function selectBetSide(side) {
+            if (isSpinning) return;
+            selectedSide = side; 
+            document.getElementById("board-RED").classList.remove("active-side-bet");
+            document.getElementById("board-GREEN").classList.remove("active-side-bet");
+            document.getElementById("board-BLUE").classList.remove("active-side-bet");
+            document.getElementById(`board-${side}`).classList.add("active-side-bet");
+            playAudio('click');
+        }
+
+        // 🎰 [🎰 মেগা ইমেজ-লেস মার্বেল বাউন্সিং ও ড্রপিং ৩D এনিমেশন ইঞ্জিন ভাই ভাই]
+        function animateMarbleDroppingEngine(serverGameData) {
+            const ball = document.getElementById("active-marble-node");
+            if (!ball) return;
+
+            let targetColor = serverGameData.outcomeColor || "RED";
+            
+            // গন্তব্য হোলের এক্স-অক্ষ এলাইনমেন্ট শতকরা অনুপাত চ্যাম লক ওস্তাদ
+            let finalLeftPercentage = 16.5; // RED
+            if (targetColor === "GREEN") finalLeftPercentage = 50;
+            if (targetColor === "BLUE") finalLeftPercentage = 83.5;
+
+            ball.style.transition = "none";
+            ball.style.top = "-20px";
+            ball.style.left = "50%";
+
+            let currentFrameTick = 0;
+            playAudio('spin');
+
+            // 🕒 ক্যারেক্টার বাউন্স পথ কোঅর্ডিনেট ইন্টারভাল ড্রাইভার ভাই ভাই (১.৫ সেকেন্ড টাইট লক)
+            const droppingInterval = setInterval(() => {
+                currentFrameTick++;
+                
+                if (currentFrameTick === 1) {
+                    ball.style.transition = "top 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), left 0.4s ease-in-out";
+                    ball.style.top = "40px"; ball.style.left = "50%";
+                }
+                if (currentFrameTick === 2) {
+                    ball.style.top = "90px"; 
+                    ball.style.left = (targetColor === "RED") ? "46%" : ((targetColor === "BLUE") ? "54%" : "50%");
+                }
+                if (currentFrameTick === 3) {
+                    ball.style.top = "140px";
+                    ball.style.left = (targetColor === "RED") ? "35%" : ((targetColor === "BLUE") ? "65%" : "50%");
+                }
+                if (currentFrameTick === 4) {
+                    ball.style.transition = "top 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53), left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+                    ball.style.top = "200px"; 
+                    ball.style.left = finalLeftPercentage + "%";
+                    clearInterval(droppingInterval);
+                    
+                    // ৪. গন্তব্য বক্সে ল্যান্ড করা মাত্রই ইনস্ট্যান্ট পুরস্কার ও ব্যালেন্স পুশ
+                    setTimeout(() => {
+                        if (serverGameData.balance !== undefined) {
+                            balance = parseFloat(serverGameData.balance);
+                        }
+                        showFinalMarbleReward(serverGameData.status, serverGameData.winAmount, targetColor);
+                    }, 420);
+                }
+            }, 350);
+        }
+
+        async function handleMarblePopDeal() {
+            if (isSpinning || isSpinning === true) return; 
+            if (!selectedSide) {
+                alert("🔒 বাজি প্লে করার আগে RED, GREEN বা BLUE সিলেক্ট করুন ওস্তাদ!");
+                return;
+            }
+
+            isSpinning = true;
+            if (document.getElementById("spin-btn")) document.getElementById("spin-btn").disabled = true;
+            if (document.getElementById("win-status-box")) document.getElementById("win-status-box").className = "win-status-container";
+            if (document.getElementById("win-text-msg")) document.getElementById("win-text-msg").innerText = "🎰 মার্বেল পপ ব্লাস্টিং করা হচ্ছে...";
+            playAudio('click');
+
+            try {
+                const response = await fetch(`${SERVER_URL}/api/marble-deal`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: urlUserId, amount: parseFloat(currentBet), wallet: urlWallet, prediction: selectedSide
+                    })
+                });
+
+                const serverRes = await response.json();
+                
+                if (serverRes.success || serverRes.success === true) {
+                    let parsedLiveBalance = serverRes.balance || serverRes.data?.balance || balance;
+                    balance = parseFloat(parsedLiveBalance);
+                    
+                    let targetGamePayload = serverRes.gameData || serverRes;
+                    animateMarbleDroppingEngine(targetGamePayload);
+                } else {
+                    alert(serverRes.message || "❌ Insufficient Balance! Please Recharge Wallet.");
+                    stopMarbleState();
+                }
+            } catch (err) {
+                stopMarbleState();
+            }
+        }
+
+        function showFinalMarbleReward(status, winAmount, finalColor) {
+            const msgBox = document.getElementById("win-status-box");
+            const textMsg = document.getElementById("win-text-msg");
+            
+            let displayColorBengali = finalColor === "RED" ? "RED (লাল) 🔴" : (finalColor === "GREEN" ? "GREEN (সবুজ) 🟢" : "BLUE (নীল) 🔵");
+
+            if (status === "win") {
+                playAudio('win');
+                if (msgBox) msgBox.className = "win-status-container win-glow-bar";
+                if (textMsg) textMsg.innerHTML = `🎉 গ্র্যান্ড উইন ওস্তাদ! মার্বেল <b>${displayColorBengali}</b> বক্সে পড়েছে। ওয়ালেটে ৳${winAmount} ক্রেডিট হয়েছে ভাই ভাই!`;
+            } else {
+                playAudio('wheel');
+                if (msgBox) msgBox.className = "win-status-container lose-glow-bar";
+                if (textMsg) textMsg.innerHTML = `💥 ওহ হো লস! মার্বেল <b>${displayColorBengali}</b> বক্সে পড়েছে। আবার অন ফায়ার ট্রাই করুন ওস্তাদ!`;
+            }
+
+            // 🎯 [মেগা ইনস্ট্যান্ট রিফ্রেশার ট্রিক]: মার্বেল হোলে পড়া মাত্রই ১ মিলি-সেকেন্ডে ওপরের ব্যালেন্স ইনস্ট্যান্ট আপডেট!
+            if (typeof balance !== 'undefined' && !isNaN(balance)) {
+                if (document.getElementById("user-balance")) {
+                    document.getElementById("user-balance").innerText = balance.toFixed(2);
+                }
+            }
+
+            setTimeout(() => { fetchLiveBalance(); }, 1500);
+            stopMarbleState();
+
+            if (isAuto) {
+                autoInterval = setTimeout(() => {
+                    if (isAuto) handleMarblePopDeal();
+                }, 3500);
+            }
+        }
+
+        if (typeof io !== 'undefined') {
+            const socket = io();
+            socket.on("balanceUpdate", (data) => {
+                if (data && data.username === urlUserId) {
+                    if (data.balance !== undefined) {
+                        balance = parseFloat(data.balance);
+                        if (document.getElementById("user-balance")) {
+                            document.getElementById("user-balance").innerText = balance.toFixed(2);
+                        }
+                    }
+                    if (window.parent) window.parent.postMessage({ action: "refresh_wallet" }, "*");
+                }
+            });
+        }
+
+        async function fetchLiveBalance() {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/marble-balance?userId=${urlUserId}&wallet=${urlWallet}`);
+                const serverData = await response.json();
+                if (serverData.success || serverData.balance !== undefined) {
+                    balance = parseFloat(serverData.balance);
+                    if (document.getElementById("user-balance")) {
+                        document.getElementById("user-balance").innerText = balance.toFixed(2);
+                    }
+                }
+            } catch (e) { console.error("Balance stream link passed"); }
+        }
+
+        window.onload = () => {
+            if (window.parent) window.parent.postMessage({ action: "refresh_wallet" }, "*");
+            generateStaticCanvasPegs(); // পিন গ্রিড ইনিশিয়ালাইজেশন
+            fetchLiveBalance();
+        };
+
+     function toggleAuto() {
+            isAuto = !isAuto;
+            const autoEl = document.getElementById("auto-btn");
+            if (autoEl) autoEl.classList.toggle('active', isAuto);
+            if (isAuto && !isSpinning) handleMarblePopDeal();
+            playAudio('click');
+        }
+
+        function stopMarbleState() {
+            isSpinning = false;
+            if (document.getElementById("spin-btn")) document.getElementById("spin-btn").disabled = false;
+            if (!isAuto && autoInterval) clearTimeout(autoInterval);
+        }
+
+        const slotSounds = {
+            click: new Audio('spin2.mp3'), spin: new Audio('spin2.mp3'),
+            win: new Audio('win2.mp3'), wheel: new Audio('spin2.mp3')
+        };
+        Object.values(slotSounds).forEach(s => s.load());
+
+        function playAudio(type) {
+            try { slotSounds[type].currentTime = 0; slotSounds[type].play(); } catch(e) {}
+        }
+    </script>
+</body>
+</html>
+   
